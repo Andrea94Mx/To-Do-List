@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Andrea's Javascript app </title>
+</head>
+
+<body style="background-color: magenta; margin: 200px 0px 0px 500px;">
+
+  <div style="
+    display: flex;
+    flex-direction: row;
+    ">
+    <h1 style="color: white;">Andrea<h3 style="color: white;">&#8482;</h3>
+    </h1><h1 style="color: white;">'s To-Do List!!</h1>
+  </div>
+  <input id="dateNum" type="date"/>
+  <input id="todo-title" type="text"/>
+  <button onclick="addTodo()">Click Here</button>
+
+<div id="listaDo" style=" display: flex; flex-direction: column;"></div>
+
+  <script>
+//Model
+
+//if localstorage has a todos array, display it
+//if not use the following array.
+let todos;
+
+//retrieve localstorage
+const savedTodos = JSON.parse(localStorage.getItem('todos'));
+
+//check if it's an array
+if (Array.isArray(savedTodos)) {
+  todos = savedTodos;
+} else {
+  todos = [{
+      title: 'Javascript Course',
+      dueDate: '2023-06-19',
+      iD: '1v',
+      edit: false,
+      isDone: false
+    }, {
+      title: 'homework',
+      dueDate: '2023-05-28',
+      iD: '2v',
+      edit: false,
+      isDone: false
+    }];
+  }
+//Creates a todo
+    const newTodo = (title, dueDate) => {
+    const iD = '' + new Date().getTime();
+
+    todos.push ({
+      title: title,
+      dueDate: dueDate,
+      iD: iD,
+      edit: false,
+      isDone: false
+    });
+    save2Dos();
+    }
+
+//Deletes a todo
+
+   const removeTodo = (iD2Delete) => {
+    todos = todos.filter(function (todo) {
+          // If the id of this todo matches iD2Delete, return false
+          // For everything else, return true
+          if (todo.iD === iD2Delete) {
+            return false;
+          } else {
+            return true;
+          }
+        });
+        save2Dos();
+}
+
+//Chexdone system
+const chexdone = (todoID, isDone) => {
+const update2do = todos.find(todo => todo.iD === todoID);
+if (update2do) {
+  update2do.isDone = isDone;
+}
+save2Dos();
+}
+
+//save 2do
+const save2Dos = () => {
+  localStorage.setItem('todos', JSON.stringify(todos));
+}
+
+//Controller
+
+const addTodo = () => {
+const textbox = document.getElementById ('todo-title');
+    const title = textbox.value;
+
+    const dateNum = document.getElementById('dateNum');
+    const dueDate = dateNum.value;
+
+    newTodo(title, dueDate);
+    render();
+}
+
+    const deleteToDo = (event) => {
+    const deleteButton = event.target;
+    const iD2Delete = deleteButton.iD;
+
+    removeTodo(iD2Delete);
+    render();
+}
+
+    const toggleEdit = (todoID) => {
+      const todoToEdit = todos.find (todo => todo.iD === todoID);
+      if (todoToEdit) {
+        todoToEdit.edit = !todoToEdit.edit
+      }
+    }
+
+//On Delete function
+const onDelete = (todoToDelete) => {
+return function () {
+const iD2Delete = todoToDelete.iD;
+removeTodo(iD2Delete);
+render();
+};
+
+    }
+
+
+//View
+
+const render = () => {
+  // Code to reset list
+  document.getElementById('listaDo').innerHTML = '';
+
+  todos.forEach(function (todo) {
+    const element = document.createElement('div');
+    element.style.display = 'flex';
+    element.style.flexDirection = 'row';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = todo.iD + ' checkbox';
+    checkbox.checked = todo.isDone;
+    checkbox.dataset.todoId = todo.iD;
+    checkbox.onchange = function () {
+      //calls the Model section to update the "isDone" property
+      chexdone(todo.iD, checkbox.checked);
+    };
+    element.appendChild(checkbox);
+
+    if (todo.edit){
+//when the item is being edited show imput fields for title and due date
+const editTitleInput = document.createElement('input');
+editTitleInput.type = 'text';
+editTitleInput.value = todo.title;
+element.appendChild(editTitleInput);
+
+const editDateInput = document.createElement('input');
+editDateInput.type = 'date';
+editDateInput.value = todo.dueDate;
+element.appendChild (editDateInput);
+
+const updateButton = document.createElement('button');
+updateButton.innerText = 'Update <3 uwu';
+updateButton.style.backgroundColor = 'blue';
+updateButton.onclick = function (){
+  //Update the To-Do item with the new title and due date
+  todo.title = editTitleInput.value;
+  todo.dueDate = editDateInput.value;
+  todo.edit = false; //turns off editing after the update
+  save2Dos();
+  render();
+};
+element.appendChild(updateButton);
+
+    } else {
+      const textual = document.createElement('div');
+      textual.innerText = todo.title + ' ' + todo.dueDate;
+      element.appendChild(textual); 
+
+
+    const editButton = document.createElement('button');
+    editButton.innerText = 'Edit<3';
+    editButton.onclick = function () {
+    toggleEdit(todo.iD);
+    render();
+    };
+    element.appendChild(editButton);
+    }
+
+    const deleteButton = document.createElement('button');
+    deleteButton.innerText = 'Delete';
+    deleteButton.style = 'margin-left: 25px';
+    deleteButton.onclick = onDelete(todo);
+    element.appendChild(deleteButton);
+
+    const todoList = document.getElementById('listaDo');
+    todoList.appendChild(element);
+  });
+}
+
+      render ();
+  
+  </script>
+</body>
+</html>
+
